@@ -43,7 +43,7 @@ class CampusCard:
             'login': False,
             'serverPublicKey': '',
             'deviceId': str(random.randint(999999999999999, 9999999999999999)),
-            'wanxiaoVersion': 10462101,
+            'wanxiaoVersion': 10531102,
             'rsaKey': {
                 'private': rsa_keys[1],
                 'public': rsa_keys[0]
@@ -56,11 +56,11 @@ class CampusCard:
         :return:
         """
         resp = requests.post(
-            "https://server.17wanxiao.com/campus/cam_iface46/exchangeSecretkey.action",
-            #"https://app.17wanxiao.com:443/campus/cam_iface46/exchangeSecretkey.action",
+            #"https://server.17wanxiao.com/campus/cam_iface46/exchangeSecretkey.action",
+            "https://app.17wanxiao.com:443/campus/cam_iface46/exchangeSecretkey.action",
             headers={
-                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1.1; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10)",
-                #"User-Agent": "NCP/5.3.1 (iPhone; iOS 13.5; Scale/2.00)",
+                #"User-Agent": "Dalvik/2.1.0 (Linux; U; Android 5.1.1; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10)",
+                "User-Agent": "NCP/5.3.1 (iPhone; iOS 13.5; Scale/2.00)",
             },
             json={
                 "key": self.user_info["rsaKey"]["public"]
@@ -90,13 +90,13 @@ class CampusCard:
             "password": password_list,
             "qudao": "guanwang",
             "requestMethod": "cam_iface46/loginnew.action",
-            "shebeixinghao": "MLA-AL10",
-            "systemType": "android",
-            "telephoneInfo": "5.1.1",
-            "telephoneModel": "HUAWEI MLA-AL10",
+            "shebeixinghao": "iPhone12",
+            "systemType": "iOS",
+            "telephoneInfo": "13.5",
+            "telephoneModel": "iPhone",
             "type": "1",
             "userName": phone,
-            "wanxiaoVersion": 10462101,
+            "wanxiaoVersion": 10531102,
             "yunyingshang": "07"
         }
         upload_args = {
@@ -104,8 +104,8 @@ class CampusCard:
             "data": des_3.object_encrypt(login_args, self.user_info["appKey"])
         }
         resp = requests.post(
-            "https://server.17wanxiao.com/campus/cam_iface46/loginnew.action",
-            #"https://app.17wanxiao.com/campus/cam_iface46/loginnew.action",
+            #"https://server.17wanxiao.com/campus/cam_iface46/loginnew.action",
+            "https://app.17wanxiao.com/campus/cam_iface46/loginnew.action",
             headers={"campusSign": hashlib.sha256(json.dumps(upload_args).encode('utf-8')).hexdigest()},
             json=upload_args,
             verify=False
@@ -116,21 +116,20 @@ class CampusCard:
             self.user_info["exchangeFlag"] = False
         return resp["result_"]
 
+    #如果不请求一下 token 会失效
     def get_main_info(self):
         resp = requests.post(
-            "https://reportedh5.17wanxiao.com/api/clock/school/getUserInfo",
-            #"https://reportedh5.17wanxiao.com/api/clock/school/open",
+            #"https://reportedh5.17wanxiao.com/api/clock/school/getUserInfo",
+            "https://reportedh5.17wanxiao.com/api/clock/school/open",
             headers={
-                "Referer": "https://reportedh5.17wanxiao.com/collegeHealthPunch/index.html?token="+self.user_info["sessionId"],
-                #"Referer": "https://reportedh5.17wanxiao.com/health/index.html?templateid=pneumonia&businessType=epmpics&token="+self.user_info["sessionId"],
+                #"Referer": "https://reportedh5.17wanxiao.com/collegeHealthPunch/index.html?token="+self.user_info["sessionId"],
+                "Referer": "https://reportedh5.17wanxiao.com/health/index.html?templateid=pneumonia&businessType=epmpics&versioncode=10531102&systemType=IOS&UAinfo=wanxiao&token="+self.user_info["sessionId"],
                 "Origin": "https://reportedh5.17wanxiao.com",
-                "User-Agent": "Mozilla/5.0 (Linux; Android 5.1.1; HUAWEI MLA-AL10 Build/HUAWEIMLA-AL10; wv) "
-                              "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/74.0.3729.136 Mobile "
-                              "Safari/537.36 Wanxiao/4.6.2",
+                "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 13_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E149 Wanxiao/5.3.1"
             },
             data={
-                "token": self.user_info["sessionId"],
-                "appClassify": "DK"
+                "appClassify": "DK",
+                "token": self.user_info["sessionId"]
             },
             verify=False
         ).json()
