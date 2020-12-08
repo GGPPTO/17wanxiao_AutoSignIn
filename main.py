@@ -39,7 +39,7 @@ def main():
                 token = campus.user_info["sessionId"]
                 driver.get('https://reportedh5.17wanxiao.com/collegeHealthPunch/index.html?token=%s#/punch?punchId=180'%token)
                 #time.sleep(10)
-                response = check_in(loginJson["classId"],loginJson["classDescription"],loginJson["stuNo"],loginJson["username"],phone[index],guardianPhone[index],loginJson["userId"],loginJson["customerId"],token)
+                response = check_in(loginJson["classId"],loginJson["classDescription"],loginJson["stuNo"],loginJson["username"],phone[index],egcP[index],guardianPhone[index],loginJson["userId"],loginJson["customerId"],token)
                 if  response.json()["msg"] == '成功'and index == 0:
                     strTime = GetNowTime()
                     success.append(value[-4:])
@@ -152,9 +152,9 @@ def GetUserJson(deptId,text,stuNum,userName,phone,egcP,guardianPhone,userId,cust
 }
 
 #打卡提交函数
-def check_in(deptId,text,stuNum,userName,phone,guardianPhone,userId,customerId,token):
+def check_in(deptId,text,stuNum,userName,phone,egcP,guardianPhone,userId,customerId,token):
     sign_url = "https://reportedh5.17wanxiao.com/sass/api/epmpics"
-    jsons=GetUserJson(deptId,text,stuNum,userName,phone,guardianPhone,userId,customerId,token)
+    jsons=GetUserJson(deptId,text,stuNum,userName,phone,egcP,guardianPhone,userId,customerId,token)
     #提交打卡
     response = requests.post(sign_url, json=jsons,)
     return response
