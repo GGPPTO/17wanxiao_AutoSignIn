@@ -92,7 +92,7 @@ def GetNowTime():
     return strTime
 
 #打卡参数配置函数
-def GetUserJson(deptId,text,stuNum,userName,phone,EmergencyContact,guardianPhone,userId,customerId,token):
+def GetUserJson(deptId,text,stuNum,userName,phone,emergencyContact1,guardianPhone,userId,customerId,token):
     return  {
 	"businessType": "epmpics",
 	"method": "submitUpInfo",
@@ -140,7 +140,7 @@ def GetUserJson(deptId,text,stuNum,userName,phone,EmergencyContact,guardianPhone
 			},
 			{
 			"propertyname": "emergencyContact",
-			"value": EmergencyContact
+			"value": emergencyContact1
 			}, 
 			{
 			"propertyname": "mergencyPeoplePhone",
@@ -152,9 +152,9 @@ def GetUserJson(deptId,text,stuNum,userName,phone,EmergencyContact,guardianPhone
 }
 
 #打卡提交函数
-def check_in(deptId,text,stuNum,userName,phone,EmergencyContact,guardianPhone,userId,customerId,token):
+def check_in(deptId,text,stuNum,userName,phone,emergencyContact1,guardianPhone,userId,customerId,token):
     sign_url = "https://reportedh5.17wanxiao.com/sass/api/epmpics"
-    jsons=GetUserJson(deptId,text,stuNum,userName,phone,EmergencyContact,guardianPhone,userId,customerId,token)
+    jsons=GetUserJson(deptId,text,stuNum,userName,phone,emergencyContact1,guardianPhone,userId,customerId,token)
     #提交打卡
     response = requests.post(sign_url, json=jsons,)
     return response
