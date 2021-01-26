@@ -4,18 +4,6 @@ import requests
 import datetime
 import logging
 from campus import CampusCard
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-
-chrome_options = Options()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--no-sandbox')
-chrome_options.add_argument('--disable-dev-shm-usage')
-driver = webdriver.Chrome('/usr/bin/chromedriver', chrome_options=chrome_options)
-# driver = webdriver.Chrome('/usr/local/bin/chromedriver', options=chrome_options)
 
 
 def initLogging():
@@ -36,52 +24,46 @@ def main():
             sckey.append(info[2])
         except BaseException:
             break
-
     # 提交打卡
+    print("-----------------------")
     for index, value in enumerate(phone):
         print("开始获取用户%s信息" % (value[-4:]))
         count = 0
+        msg = "null"
         while count < 3:
             try:
                 campus = CampusCard(phone[index], password[index])
                 token = campus.user_info["sessionId"]
-                driver.get('https://reportedh5.17wanxiao.com/collegeHealthPunch/index.html?token=%s#/punch?punchId=180'%token)
-                time.sleep(2)
-                strTime = GetNowTime()
+                time.sleep(1)
                 res = check_in(token)
+                strTime = GetNowTime()
                 if res['code'] == '10000':
                     success.append(value[-4:])
-                    logging.info(value[-4:] + "打卡成功-" + strTime)
+                    msg = value[-4:] + "-打卡成功-" + strTime
                     result = res
                     break
-                elif res['code'] != '10000':
+                else:
                     failure.append(value[-4:])
-                    logging.info(value[-4:] + "打卡异常-" + strTime)
+                    msg = value[-4:] + "-失败-" + strTime
                     count = count + 1
                     print('%s打卡失败，开始第%d次重试...' % (value[-6:], count))
-                    time.sleep(30)
-
+                    time.sleep(301)
             except Exception as err:
                 print(err)
-                logging.warning('出现错误')
+                msg = '出现错误'
                 failure.append(value[-4:])
                 break
+        print(msg)
         print("-----------------------")
     fail = sorted(set(failure), key=failure.index)
     title = "成功: %s 人,失败: %s 人" % (len(success), len(fail))
-    try:
-        if len(sckey[0]) > 2:
-            print('主用户开始微信推送...')
-            WechatPush(
-                title,
-                'https://sc.ftqq.com/' +
-                sckey[0] +
-                '.send',
-                success,
-                fail,
-                result)
-    except BaseException:
-        print("微信推送出错！%s")
+    for _ in range(1):
+        try:
+            if sckey[0]:
+                print('开始推送...')
+                WechatPush(title, sckey[0], success, fail, result)
+        except:
+            print("推送出错！")
 
 
 # 时间函数
@@ -103,11 +85,7 @@ def GetUserJson(token):
         "method": "userComeApp"
     }
     res = requests.post(sign_url, json=user_json, verify=False).json()
-    print("这是res")
-    print(res)
     data = json.loads(res['data'])
-    print("这是data")
-    print(data)
     post_dict = {
         "add": data['add'],
         "areaStr": data['areaStr'],
@@ -140,25 +118,17 @@ def check_in(token):
     sign_url = "https://reportedh5.17wanxiao.com/sass/api/epmpics"
     jsons = GetUserJson(token)
     # print(jsons)
+
     # 提交打卡
-    res = requests.post(sign_url, json=jsons, verify=False).json()
-    print("要提交的res")
+    res = requests.post(sign_url, json=jsons, timeout=10).json()
     print(res)
     return res
 
 
 # 微信通知
-
 def WechatPush(title, sckey, success, fail, result):
+    send_url = f"https://sc.ftqq.com/{sckey}.send"
     strTime = GetNowTime()
-    page = json.dumps(
-        result.json(),
-        sort_keys=True,
-        indent=4,
-        separators=(
-            ',',
-            ': '),
-        ensure_ascii=False)
     content = f"""
         `{strTime}`
         #### 打卡成功用户：
@@ -167,21 +137,21 @@ def WechatPush(title, sckey, success, fail, result):
         `{fail}`
         #### 主用户打卡信息:
         ```
-        {page}
+        {result}
         ```
-             """
+            """
     data = {
         "text": title,
         "desp": content
     }
     try:
-        req = requests.post(sckey, data=data)
+        req = requests.post(send_url, data=data)
         if req.json()["errmsg"] == 'success':
             print("Server酱推送服务成功")
         else:
             print("Server酱推送服务失败")
-    except BaseException:
-        print("微信推送参数错误")
+    except:
+        print("Server酱推送异常")
 
 
 if __name__ == '__main__':
